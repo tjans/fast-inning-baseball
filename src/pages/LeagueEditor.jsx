@@ -133,7 +133,6 @@ export default function LeagueEditor() {
             position: position,
             firstName: names.firstName,
             lastName: names.lastName,
-            position
           }
 
           // saves main player record

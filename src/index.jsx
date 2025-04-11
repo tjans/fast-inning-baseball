@@ -5,6 +5,7 @@ import * as ReactDOM from "react-dom/client";
 import Layout from "src/pages/Layout";
 
 // Pages
+import Login from "src/pages/Login";
 import Home from "src/pages/Home";
 import Settings from "src/pages/Settings";
 
@@ -32,6 +33,8 @@ const router = createBrowserRouter(
     <>
       <Route path="/" element={<Layout />} errorElement={<ErrorPage />}>
         <Route index element={<Home />} />
+        <Route path="/login" element={<Login />} />
+
         <Route path="/leagues/:leagueId/edit" element={<LeagueEditor />} />
         <Route path="/leagues/:leagueId" element={<LeagueViewer />} />
         <Route path="/leagues/:leagueId/draft" element={<Draft />} />

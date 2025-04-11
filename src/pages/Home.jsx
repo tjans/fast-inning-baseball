@@ -15,11 +15,10 @@ import { PiBaseballCapDuotone } from "react-icons/pi";
 // components
 import ConfirmationModal from "src/components/ConfirmationModal";
 import Card from "src/components/Card";
-import { SelectInput } from "src/components/SelectInput";
+import AxiosTester from "src/components/app/AxiosTester";
 
 // forms
 import { useForm } from "react-hook-form";
-import { TextInput } from "src/components/TextInput";
 
 export default function Home() {
 
@@ -61,6 +60,9 @@ export default function Home() {
 
         </div>
 
+        <div className="border-2 border-defaultBlue rounded-lg p-5 mt-5">
+          <AxiosTester />
+        </div>
       </ContentWrapper>
 
       <ConfirmationModal
