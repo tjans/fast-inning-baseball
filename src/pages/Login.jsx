@@ -51,7 +51,7 @@ export default function Login() {
             } else {
                 setStatusMessage('Login failed for unknown reason');
             }
-            setStatusMessage('Error: ' + error.message);
+            setStatusMessage('Error: ' + err.message);
         }
 
         setValue('userName', '');
