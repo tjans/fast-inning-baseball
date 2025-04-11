@@ -1,0 +1,10 @@
+Items to do:
+2.16 Finder ranges for position players (do this after the team is completed)
+2.2 Free Agent creation
+Conference/Division
+Standings
+
+
+Not needed, but notable if we want to add:
+2.1.3 Salaries
+2.1.5 SP Finders
