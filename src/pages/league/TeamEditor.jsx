@@ -13,7 +13,7 @@ import ContentWrapper from "src/components/ContentWrapper";
 
 // services
 import teamService from "src/services/TeamService";
-import seasonTeamService from "src/services/SeasonTeamService";
+import { toast } from "react-toastify";
 
 export default function TeamEditor() {
 
@@ -35,11 +35,16 @@ export default function TeamEditor() {
     } = useForm();
 
     const onSubmit = async (data) => {
-
+        let team = await teamService.getSeasonTeam(seasonTeamId);
+        team.parent.city = data.teamCity;
+        team.parent.name = data.teamName;
+        await teamService.saveTeam(team.parent);
+        toast.success("Team saved successfully!");
+        navigate(`/leagues/${leagueId}/teams`);
     }
 
     const load = async () => {
-        let seasonTeam = await seasonTeamService.getSeasonTeam(seasonTeamId);
+        let seasonTeam = await teamService.getSeasonTeam(seasonTeamId);
         setTeamData(seasonTeam);
     }
 
@@ -47,32 +52,35 @@ export default function TeamEditor() {
         <>
             <ContentWrapper>
                 <form onSubmit={handleSubmit(onSubmit)}>
+                    {teamData &&
+                        <>
+                            <TextInput
+                                label="Team City"
+                                name="teamCity"
+                                register={register}
+                                error={errors.teamCity}
+                                defaultValue={teamData?.parent?.city ?? ""}
+                                rules={{
+                                    required: "City is required"
+                                }}
+                            />
 
-                    <TextInput
-                        label="Team City"
-                        name="teamCity"
-                        register={register}
-                        error={errors.teamCity}
-                        defaultValue={teamData?.parent.city ?? ""}
-                        rules={{
-                            required: "Team city is required"
-                        }}
-                    />
+                            <TextInput
+                                label="Team Name"
+                                name="teamName"
+                                register={register}
+                                error={errors.teamName}
+                                value={teamData?.parent.name ?? ""}
+                                rules={{
+                                    required: "Team name is required"
+                                }}
+                            />
 
-                    <TextInput
-                        label="Team Name"
-                        name="teamName"
-                        register={register}
-                        error={errors.teamName}
-                        defaultValue={teamData?.parent.name ?? ""}
-                        rules={{
-                            required: "Team name is required"
-                        }}
-                    />
-
-                    <FormSubmit
-                        onCancel={(_) => navigate(`/leagues/${leagueId}/teams`)}
-                    />
+                            <FormSubmit
+                                onCancel={(_) => navigate(`/leagues/${leagueId}/teams`)}
+                            />
+                        </>
+                    }
 
                 </form>
             </ContentWrapper>

@@ -1,29 +1,14 @@
-import SeasonService from "src/services/SeasonService";
 import { db } from "src/db";
-import { v4 as uuidv4 } from 'uuid';
-import SeasonTeamService from "src/services/SeasonTeamService";
 
-class LeagueFacade {
-  static async getCurrentTeams(seasonId) {
-    const seasonTeams = await SeasonTeamService.getSeasonTeams(seasonId);
-    
-    const teams = await Promise.all(seasonTeams.map(async (seasonTeam) => {
-      const team = await db.teams.get(seasonTeam.teamId);
-      const gm = await db.generalManagers.get(seasonTeam.generalManagerId); // Assuming `gmId` is a property of the team
-      const seasonPlayers = await db.seasonPlayers.where("seasonTeamId").equals(seasonTeam.seasonTeamId).toArray();
-      return { ...seasonTeam, parent: team, gm, seasonPlayers };
-    }));
+import teamService from "src/services/TeamService";
+import seasonService from "src/services/SeasonService";
+import nameService from "src/services/NameService";
+import gmService from "src/services/GeneralManagerService";
+import playerService from "src/services/PlayerService";
+import leagueService from "src/services/LeagueService";
 
-    teams.sort((a, b) => {
-      if (a.parent.city < b.parent.city) return -1;
-      if (a.parent.city > b.parent.city) return 1;
-      if (a.parent.name < b.parent.name) return -1;
-      if (a.parent.name > b.parent.name) return 1;
-      return 0;
-    });
-    return teams;
-  }
-  
+
+class LeagueFacade {  
 
   // This function should retrieve all players by position, sorted by sortString.  It needs to return a list of players who do not have a seasonTeamId set on their
   // seasonPlayers record.
@@ -32,22 +17,21 @@ class LeagueFacade {
     var searchPositions = ['1B', '2B', '3B', 'SS', 'OF', 'DH', 'C'];
 
     if(position) {
-    if(position.toLowerCase() == 'offense') {
-      searchPositions = ['1B', '2B', '3B', 'SS', 'OF', 'DH', 'C'];
-    } else if(position.toLowerCase() == 'pitchers') {
-      searchPositions = ['SP', 'RP', 'CL'];
-    } else if(position) {
-      searchPositions = [position];
-    }   
-  }
+      if(position.toLowerCase() == 'offense') {
+        searchPositions = ['1B', '2B', '3B', 'SS', 'OF', 'DH', 'C'];
+      } else if(position.toLowerCase() == 'pitchers') {
+        searchPositions = ['SP', 'RP', 'CL'];
+      } else if(position) {
+        searchPositions = [position];
+      }   
+    }
 
-    // there is a seasonPlayers table that has a seasonTeamId on it, but the player's name exists on players table.  We need to get the seasonPlayers who don't have a seasonTeamId
-    // set on their record, along with a parent record like we did on lines 10-14 above, using promise.all like we did above.
-    const seasonPlayers = await db.seasonPlayers
+    const seasonPlayers = await db.players
+    
       .where("seasonId")
       .equals(seasonId)
       .filter((sp) => searchPositions.includes(sp.position))
-      .filter((sp) => !sp.seasonTeamId)
+      .filter((sp) => !sp.teamId)
       .toArray();
 
     let offenseSorter = (a, b) => {
@@ -60,15 +44,9 @@ class LeagueFacade {
       return 0;
     };
 
-    seasonPlayers.sort(offenseSorter)
-
-    const players = await Promise.all(seasonPlayers.map(async (seasonPlayer) => {
-      const player = await db.players.get(seasonPlayer.playerId);
-      return { ...seasonPlayer, parent: player };
-    }
-    ));
-    
-    return players;
+    seasonPlayers.sort(offenseSorter); 
+  
+    return seasonPlayers;
   }
 
   static getDraftNotes(gm) {
@@ -538,6 +516,124 @@ class LeagueFacade {
 
     return ["??"];
   }
+
+  static async setupNewLeague(data, isDraftLeague) {
+     // create a new league
+     let newLeague = {
+      name: data.leagueName,
+      numberOfTeams: data.numberOfTeams,
+      numberOfGames: data.numberOfGames,
+      isDraftLeague: isDraftLeague,
+      year: 1
+    };
+
+    var newLeagueId = await leagueService.saveLeague(newLeague);
+    var seasonId = await this.createSeason(newLeagueId);
+
+    // iterate over each team and create all the players for the team
+    for (let i = 0; i < data.numberOfTeams; i++) {
+      let gmId = await this.createTeamGM();
+      let teamId = await this.createTeam(i, newLeagueId, seasonId, gmId);
+
+      // create position players
+      ["C", "1B", "2B", "SS", "3B", "OF", "OF", "OF", "DH"].map(async (position) => {
+        // generate a position player
+        await this.createPositionPlayer(position, seasonId, isDraftLeague ? null : teamId);
+      });
+
+      // create starting pitchers
+      for (let i = 0; i < 6; i++) {
+        await this.createStartingPitcher(seasonId, isDraftLeague ? null : teamId);
+      }
+
+      // create relief pitchers
+      for (let i = 0; i < 4; i++) {
+        await this.createReliefPitcher('RP', seasonId, isDraftLeague ? null : teamId);
+      }
+
+      // create closer
+      await this.createReliefPitcher('CL', seasonId, isDraftLeague ? null : teamId);
+    }
+  }
+
+  static async createStartingPitcher(seasonId, teamId) {
+      let pitcher = await playerService.generatePitcher("RP");
+
+      let names = await nameService.generateName();
+      let player = {
+        firstName: names.firstName,
+        lastName: names.lastName,
+        position: "SP",
+        seasonId,
+        teamId,
+        ...pitcher
+      }
+      let playerId = await playerService.savePlayer(player);   
+  }
+
+  static async createReliefPitcher(position, seasonId, teamId) {
+      let names = await nameService.generateName();
+      let pitcher = await playerService.generatePitcher("RP");
+
+      let player = {
+        firstName: names.firstName,
+        lastName: names.lastName,
+        seasonId,
+        teamId,
+        position: "RP",
+        ...pitcher,
+        position
+      }
+      let playerId = await playerService.savePlayer(player);
+  }
+  
+  static async createPositionPlayer(position, seasonId, teamId) {
+    let positionPlayer = await playerService.generatePositionPlayer(position);
+
+        let names = await nameService.generateName();
+        positionPlayer.firstName = names.firstName;
+        positionPlayer.lastName = names.lastName;
+        positionPlayer.position = position;
+        positionPlayer.teamId = teamId;
+        positionPlayer.seasonId = seasonId;
+        await playerService.savePlayer(positionPlayer);
+  }
+
+  static async createTeam(index, leagueId, seasonId, gmId) {
+    // Create the team record
+    let team = {
+      city: `City ${index + 1}`,
+      name: `Team`,
+      leagueId: leagueId,
+      gmId,
+      seasonId,
+      abbreviation: `TM${index + 1}`,
+    }
+
+    let teamId = await teamService.saveTeam(team);
+    return teamId;
+  }
+
+  static async createTeamGM() {
+    // Create a GM for the team
+    let gm = await gmService.generate();
+    let names = await nameService.generateName();
+    gm.firstName = names.firstName;
+    gm.lastName = names.lastName;
+    let gmId = await gmService.saveGeneralManager(gm);
+    return gmId;
+  }
+
+  static async createSeason(leagueId) {
+    var seasonId = await seasonService.saveSeason({
+      leagueId: leagueId,
+      year: 1
+    });
+
+    return seasonId;
+  }
+
+
 }
 
 export default LeagueFacade;

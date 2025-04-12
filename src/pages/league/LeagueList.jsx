@@ -37,48 +37,20 @@ export default function LeagueList() {
                     </Link>
                 </div>
 
-
-
                 {leagues && leagues.length > 0 && leagues.map((league) => {
 
                     return (
-                        <Card to={`/leagues/${league.leagueId}/teams`} className="" key={league.leagueId} >
-                            <div className="flex items-center gap-3">
-                                <PiBaseballCapDuotone className="mr-5 text-3xl text-defaultBlue" />
-                                <section className="text-left">
-                                    <div className="font-bold">
-                                        {league.name}
-                                    </div>
-                                    <div className="text-sm">
-                                        {league.numberOfTeams} Teams, {league.numberOfGames} Games, {league.isDraftLeague ? "Draft" : "Auto"}
-                                    </div>
-                                </section >
+                        <section className="text-left" key={league.leagueId}>
+                            <div className="font-bold">
+                                {league.name}
                             </div>
-                        </Card>
+                            <div className="text-sm">
+                                {league.numberOfTeams} Teams, {league.numberOfGames} Games, {league.isDraftLeague ? "Draft" : "Auto"}
+                            </div>
+                            <div><Link to={`/leagues/${league.leagueId}/draft`} className="underline">Draft</Link></div>
+                            <div><Link to={`/leagues/${league.leagueId}/teams`} className="underline">Teams</Link></div>
+                        </section >
 
-                        // <tr key={league.leagueId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        //     <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                        //         {league.name}
-                        //     </td>
-                        //     <td className="px-4 py-2">
-                        //         {league.numberOfTeams}
-                        //     </td>
-                        //     <td className="px-4 py-2">
-                        //         {league.numberOfGames}
-                        //     </td>
-                        //     <td className="px-4 py-2">
-                        //         {league.isDraftLeague ? "Draft" : "Auto"}
-                        //     </td>
-                        //     <td className="px-4 py-2">
-                        //         <Link to={`/leagues/${league.leagueId}/edit`} className="px-3 py-1 text-xs font-bold text-white uppercase bg-blue-500 rounded-full hover:bg-blue-700">
-                        //             EDIT
-                        //         </Link>
-
-                        //         <Link to={`/leagues/${league.leagueId}`} className="px-3 py-1 ml-2 text-xs font-bold text-white uppercase bg-yellow-500 rounded-full hover:bg-yellow-700">
-                        //             VIEW
-                        //         </Link>
-                        //     </td>
-                        // </tr>
                     );
                 })}
 

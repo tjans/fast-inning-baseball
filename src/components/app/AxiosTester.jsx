@@ -1,4 +1,4 @@
-import useAppAxios from 'hooks/useAppAxios';
+import useAppAxios from 'src/hooks/useAppAxios';
 import { useEffect, useState } from 'react'
 
 // https://www.youtube.com/watch?v=nI8PYZNFtac

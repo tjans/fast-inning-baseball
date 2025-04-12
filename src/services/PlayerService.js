@@ -8,6 +8,36 @@ class PlayerService {
     return await db.players.put(player);
   }
 
+  static async getSeasonPlayer(playerId, seasonId) {
+    return await db.players
+      .where('[playerId+seasonId]')
+      .equals([playerId, seasonId])
+      .first();
+  }
+
+  static async saveSeasonPlayer (seasonPlayer) {
+    seasonPlayer = { ...seasonPlayer, playerId: seasonPlayer.playerId ?? uuidv4() };
+    return await db.players.put(seasonPlayer);
+}
+
+// get the latest season players by draft date descending
+static async getRecentlyDraftedPlayers(seasonId) {
+  let players = await db.seasonPlayers
+    .where("seasonId").equals(seasonId)
+    .and((seasonPlayer) => {
+      return seasonPlayer.draftDate !== null;
+    })
+    .sortBy("draftDate");
+
+    players.map((player) => {
+      player.parent = db.players.where("playerId").equals(player.playerId).first();
+    });
+
+  return players.reverse();
+}
+
+
+
   // #region All Players
   static generateAge() {
     const roll = util.rollTensOnes();

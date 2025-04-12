@@ -13,8 +13,7 @@ import ContentWrapper from "src/components/ContentWrapper";
 
 // services
 import leagueService from "src/services/LeagueService";
-import leagueFacade from "src/facades/LeagueFacade";
-import { use } from "react";
+import teamService from "src/services/TeamService";
 
 export default function TeamList() {
 
@@ -34,7 +33,7 @@ export default function TeamList() {
         if (league) {
             setLeague(league);
 
-            const teams = await leagueFacade.getCurrentTeams(league.currentSeason.seasonId);
+            const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId);
             setTeams(teams)
         }
     }
@@ -46,13 +45,12 @@ export default function TeamList() {
                 {teams && teams.length > 0 && teams.map((team) => {
 
                     return (
-
-                        <Card key={team.seasonTeamId} to={`/leagues/${leagueId}/teams/${team.seasonTeamId}/edit`} className="" >
+                        <Card key={team.teamId} to={`/leagues/${leagueId}/teams/${team.seasonTeamId}/edit`} className="" >
                             <div className="flex items-center gap-3">
                                 <PiBaseballCapDuotone className="mr-5 text-3xl text-defaultBlue" />
                                 <section className="text-left">
                                     <div className="font-bold">
-                                        {team.parent.city} {team.parent.name}
+                                        {team.city} {team.name}
                                     </div>
                                     <div className="text-sm">
                                         GM: {team.gm?.firstName} {team.gm?.lastName}
@@ -63,10 +61,10 @@ export default function TeamList() {
 
                         // <tr key={team.seasonTeamId} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                         //     <td className="px-4 py-2 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                        //         {team.parent.city}
+                        //         {team.city}
                         //     </td>
                         //     <td className="px-4 py-2">
-                        //         {team.parent.name}
+                        //         {team.name}
                         //     </td>
                         //     <td className="px-4 py-2">
                         //         {team.gm?.firstName} {team.gm?.lastName}

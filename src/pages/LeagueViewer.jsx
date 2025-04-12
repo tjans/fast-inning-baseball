@@ -11,7 +11,7 @@ import ContentWrapper from "src/components/ContentWrapper";
 // services
 import leagueService from "src/services/LeagueService";
 import leagueFacade from "src/facades/LeagueFacade";
-import seasonPlayerService from "src/services/SeasonPlayerService";
+import playerService from "src/services/PlayerService";
 
 // misc
 import { toast } from "react-toastify";
@@ -25,6 +25,7 @@ export default function LeagueViewer() {
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [recentDraftees, setRecentDraftees] = useState([]);
 
   useEffect(() => {
     load();
@@ -47,15 +48,18 @@ export default function LeagueViewer() {
 
   const handleDraftPlayer = (seasonPlayerId) => async (e) => {
     e.preventDefault();
-    console.log(seasonPlayerId);
+
     if (selectedTeam) {
       const teamId = selectedTeam.teamId;
       const seasonId = league.currentSeason.seasonId;
 
-      let seasonPlayer = await seasonPlayerService.getSeasonPlayer(seasonPlayerId);
+      let seasonPlayer = await playerService.getSeasonPlayer(seasonPlayerId);
       seasonPlayer.seasonTeamId = selectedTeam.seasonTeamId;
-      await seasonPlayerService.saveSeasonPlayer(seasonPlayer);
+      seasonPlayer.draftDate = new Date();
+      console.log(seasonPlayer)
+      await playerService.saveSeasonPlayer(seasonPlayer);
       toast.success("Player successfully drafted!")
+      setSelectedTeam(null);
       load();
     }
   }
@@ -74,6 +78,10 @@ export default function LeagueViewer() {
 
       const availablePlayers = await leagueFacade.getUndraftedPlayers(league.currentSeason.seasonId, selectedPosition);
       setAvailablePlayers(availablePlayers);
+
+      const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId);
+      console.log(recentDraftees);
+      //setRecentDraftees(recentDraftees);
     }
   }
 
@@ -125,6 +133,14 @@ export default function LeagueViewer() {
                 </div>
               </div>
             }
+
+            {/* {recentDraftees?.length > 0 &&
+              recentDraftees.map((player) => {
+                return <div key={player.playerId} className="my-2 text-sm">
+                  <span className="font-bold">!!{player.parent.firstName} {player.parent.lastName}</span>
+                </div>
+              })
+            } */}
 
           </div>
 

@@ -9,8 +9,20 @@ class TeamService {
     return await db.teams.put(team);
   }
 
-  static async getTeams(leagueId) {
-    const teams = await db.teams.where("leagueId").equals(leagueId).toArray();
+  static async getSeasonTeams(seasonId) {
+    // teams has a dexie store and so does gm.  Get the teams that match the seasonId, along with a property for the gm
+    let teams = await db.teams.where("seasonId")
+      .equals(seasonId)
+      .toArray();
+    // get the gm for each team
+
+    for (let i = 0; i < teams.length; i++) {
+      let gm = await db.generalManagers.where("generalManagerId")
+        .equals(teams[i].gmId)
+        .first();
+      teams[i].gm = gm;
+    }
+        
     return teams;
   }
 
@@ -148,6 +160,27 @@ class TeamService {
     } else {
       return "WEAK";
     }
+  }
+
+  // Season Specific
+  static async saveSeasonTeam (seasonTeam) {
+    seasonTeam = { ...seasonTeam, seasonTeamId: seasonTeam.seasonTeamId ?? uuidv4() };
+    return await db.seasonTeams.put(seasonTeam);
+  }
+
+  static async getSeasonTeam(seasonTeamId) {
+    let seasonTeam = await db.seasonTeams.where("seasonTeamId")
+      .equals(seasonTeamId)
+      .first();
+
+    if (seasonTeam) {
+      let team = await db.teams.where("teamId")
+    .equals(seasonTeam.teamId)
+    .first();
+      seasonTeam.parent = team; // Attach the team details to the seasonTeam object
+    }
+
+    return seasonTeam;
   }
 }
 

@@ -2,14 +2,12 @@ import Dexie from "dexie";
 import { v4 as uuidv4 } from "uuid";
 
 export const db = new Dexie("fast-inning-baseball");
-db.version(2).stores({
+db.version(3).stores({
   leagues: 'leagueId, name',
   seasons: 'seasonId, leagueId, year',
-  teams: 'teamId, city, name, abbreviation',
-  seasonTeams: 'seasonTeamId, seasonId, teamId',
-  players: 'playerId',
-  seasonPlayers: 'seasonPlayerId, playerId, seasonTeamId, seasonId',
-  prospects: 'prospectId, seasonTeamId',
+  teams: 'teamId, seasonId',
+  players: 'playerId, draftDate, seasonId, [playerId+seasonId]',
+  prospects: 'prospectId',
   generalManagers: 'generalManagerId',
 });
 db.on("populate", (transaction) => {
