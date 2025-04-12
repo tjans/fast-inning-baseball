@@ -1,9 +1,10 @@
+import useAppAxios from 'hooks/useAppAxios';
 import { useEffect, useState } from 'react'
-import axios from 'src/components/Axios';
 
 // https://www.youtube.com/watch?v=nI8PYZNFtac
 const AxiosTester = () => {
     const [data, setData] = useState(null);
+    const appAxios = useAppAxios();
 
     useEffect(() => {
 
@@ -12,7 +13,7 @@ const AxiosTester = () => {
 
         const fetchData = async () => {
             try {
-                const response = await axios.get('/protected', {
+                const response = await appAxios.get('/protected', {
                     signal: controller.signal
                 });
                 console.log(response.data);

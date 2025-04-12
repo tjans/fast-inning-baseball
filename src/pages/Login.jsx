@@ -3,8 +3,9 @@ import { useEffect, useState, useRef } from "react";
 // foundation
 import usePageTitle from 'src/hooks/usePageTitle'
 import ContentWrapper from "src/components/ContentWrapper";
+import useRefreshToken from "src/hooks/useRefreshToken";
 
-import axios from "src/components/Axios";
+import appAxios from "src/api/axios.js";
 
 // forms
 import { set, useForm } from "react-hook-form";
@@ -19,6 +20,7 @@ export default function Login() {
 
     const appStore = useAppStore();
     const userRef = useRef();
+    const refresh = useRefreshToken();
 
     const {
         register,
@@ -33,7 +35,7 @@ export default function Login() {
 
     const onSubmit = async (data) => {
         try {
-            const response = await axios.post('/login', JSON.stringify({ userName: data.userName, password: data.password }));
+            const response = await appAxios.post('/login', JSON.stringify({ userName: data.userName, password: data.password }));
             console.log(JSON.stringify(response?.data));
             const accessToken = response?.data?.accessToken;
             appStore.setAuth({ accessToken })
@@ -61,6 +63,7 @@ export default function Login() {
     return (
         <>
             <ContentWrapper>
+                {appStore.auth?.accessToken}
                 <section className="">
                     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto" style={{ minHeight: "calc(100vh - 300px)" }}>
                         <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
@@ -92,6 +95,7 @@ export default function Login() {
                                         <a href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
                                     </div>
                                     <button type="submit" className="">Login</button>
+                                    <button type="button" onClick={refresh} className="">Refresh</button>
 
                                 </form>
                             </div>
