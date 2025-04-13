@@ -9,10 +9,10 @@ class PlayerService {
     return await db.players.put(player);
   }
 
-  static async getSeasonPlayer(playerId, seasonId) {
+  static async getSeasonPlayer(seasonId,playerId) {
     return await db.players
-      .where('[playerId+seasonId]')
-      .equals([playerId, seasonId])
+      .where('[seasonId+playerId]')
+      .equals([seasonId, playerId])
       .first();
   }
 

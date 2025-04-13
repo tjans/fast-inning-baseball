@@ -38,7 +38,21 @@ export default function Draft() {
 
   const handleSelectTeam = (team) => async (e) => {
     e.preventDefault();
-    setSelectedTeam(team);
+
+    let players = await teamService.getPlayers(league.currentSeason.seasonId, team.teamId);
+
+    let positions = {};
+    players.map(player => {
+      let position = player.position;
+      if (['SP', 'RP', 'CL'].includes(player.position)) {
+        position = 'P';
+      }
+      positions[position] = (positions[position] || 0) + 1;
+    })
+
+    setSelectedTeam({ ...team, positions });
+    console.log({ ...team, positions })
+
   }
 
   const handleSelectPosition = (selected) => async (e) => {
@@ -53,7 +67,7 @@ export default function Draft() {
     if (selectedTeam) {
       const seasonId = league.currentSeason.seasonId;
 
-      let seasonPlayer = await playerService.getSeasonPlayer(playerId, seasonId);
+      let seasonPlayer = await playerService.getSeasonPlayer(seasonId, playerId);
 
       seasonPlayer.teamId = selectedTeam.teamId;
       seasonPlayer.draftDate = new Date();
@@ -81,7 +95,6 @@ export default function Draft() {
 
       const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId, 3);
       setRecentDraftees(recentDraftees);
-      console.log(recentDraftees)
     }
   }
 
@@ -94,6 +107,7 @@ export default function Draft() {
         draftee.player.draftDate = null;
         await playerService.saveSeasonPlayer(draftee.player);
         setRecentDraftees(recentDraftees.slice(1));
+        setSelectedTeam(null);
         toast.success("Player successfully undrafted!")
         load();
       }
@@ -127,6 +141,22 @@ export default function Draft() {
               </div>
             )}
 
+            {recentDraftees?.length > 0 &&
+              <div className="mt-4">
+                <hr />
+                <div className="mt-3 font-bold">Last 3 Picks - <a href="#" onClick={undo}>Undo</a></div>
+                {recentDraftees?.length > 0 &&
+                  recentDraftees.map((item) => {
+                    return <div key={item.player.playerId} className="my-2 text-sm">
+                      <span className="">
+                        {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation}
+                      </span>
+                    </div>
+                  })
+                }
+                <hr />
+              </div>
+            }
 
             {selectedTeam &&
               <div className="mt-4">
@@ -139,6 +169,21 @@ export default function Draft() {
                   </tbody>
                 </table>
 
+                {selectedTeam.positions && Object.keys(selectedTeam.positions).length > 0 &&
+                  <div className="mt-3">
+                    <strong>Draft History:</strong>
+                    {/* selectedTeam.positions is an object with key of position -> value, let's iterate over this printing out position/value */}
+                    {Object.keys(selectedTeam.positions).map((position) => {
+                      return (
+                        <div key={position}>
+                          {position}: {selectedTeam.positions[position]}
+                        </div>
+                      )
+                    })}
+                  </div>
+                }
+
+
                 <div className="my-5">
                   {leagueFacade.getDraftNotes(selectedTeam.gm).map((item, index) => {
                     return <div key={index} className="my-2 text-sm" dangerouslySetInnerHTML={{ __html: item }}></div>
@@ -147,20 +192,6 @@ export default function Draft() {
               </div>
             }
 
-            {recentDraftees?.length > 0 &&
-              <>
-                <div className="mt-3 font-bold">Last 3 Picks - <a href="#" onClick={undo}>Undo</a></div>
-                {recentDraftees?.length > 0 &&
-                  recentDraftees.map((item) => {
-                    return <div key={item.player.playerId} className="my-2 text-sm">
-                      <span className="">
-                        {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation}
-                      </span>
-                    </div>
-                  })
-                }
-              </>
-            }
 
           </div>
 

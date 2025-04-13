@@ -9,6 +9,23 @@ class TeamService {
     return await db.teams.put(team);
   }
 
+  // Update these next two methods to pull all the players with a count of 
+  static async getPlayers(seasonId, teamId) {
+    let players = await db.players.where("[seasonId+teamId]")
+      .equals([seasonId, teamId])
+      .toArray();
+
+    return players;
+  }
+
+  static async getSeasonPositionPlayers(seasonId, teamId) {
+    let players = await db.players.where("[seasonId+teamId]")
+      .equals([seasonId, teamId])
+      .and((player) => ['1B', '2B', '3B', 'SS', 'DH', 'OF', 'C'].includes(player.position))
+      .toArray();
+    return players;
+  }
+
   static async getSeasonTeams(seasonId, sorter = null) {
     // teams has a dexie store and so does gm.  Get the teams that match the seasonId, along with a property for the gm
     let teams = await db.teams.where("seasonId")
@@ -70,7 +87,7 @@ class TeamService {
 
     var bullPenValue = 0;
     var bullpenCount = 0;
-    let pitchers = [];
+    let p = [];
     for (let position in pitcherCounts) {
       for (let i = 0; i < pitcherCounts[position]; i++) {
         let player = playerService.generatePitcher(position);
