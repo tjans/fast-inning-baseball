@@ -13,12 +13,13 @@ import ContentWrapper from "src/components/ContentWrapper";
 
 // services
 import teamService from "src/services/TeamService";
+import leagueService from "src/services/LeagueService";
 import { toast } from "react-toastify";
 
 export default function TeamEditor() {
 
     usePageTitle("Team Editor");
-    const { leagueId, seasonTeamId } = useParams();
+    const { leagueId, teamId } = useParams();
     const navigate = useNavigate();
 
     const [teamData, setTeamData] = useState(null);
@@ -35,16 +36,23 @@ export default function TeamEditor() {
     } = useForm();
 
     const onSubmit = async (data) => {
-        let team = await teamService.getSeasonTeam(seasonTeamId);
-        team.parent.city = data.teamCity;
-        team.parent.name = data.teamName;
-        await teamService.saveTeam(team.parent);
+        let league = await leagueService.getLeague(leagueId);
+        let team = await teamService.getSeasonTeam(league.currentSeason.seasonId, teamId);
+        console.log(team, data)
+
+        team.city = data.teamCity;
+        team.name = data.teamName;
+        team.abbreviation = data.teamAbbreviation;
+        team.draftPosition = data.teamDraftPosition;
+        await teamService.saveSeasonTeam(team);
         toast.success("Team saved successfully!");
         navigate(`/leagues/${leagueId}/teams`);
     }
 
     const load = async () => {
-        let seasonTeam = await teamService.getSeasonTeam(seasonTeamId);
+        let league = await leagueService.getLeague(leagueId);
+        let seasonTeam = await teamService.getSeasonTeam(league.currentSeason.seasonId, teamId);
+        console.log(seasonTeam);
         setTeamData(seasonTeam);
     }
 
@@ -59,7 +67,7 @@ export default function TeamEditor() {
                                 name="teamCity"
                                 register={register}
                                 error={errors.teamCity}
-                                defaultValue={teamData?.parent?.city ?? ""}
+                                defaultValue={teamData?.city ?? ""}
                                 rules={{
                                     required: "City is required"
                                 }}
@@ -70,9 +78,33 @@ export default function TeamEditor() {
                                 name="teamName"
                                 register={register}
                                 error={errors.teamName}
-                                value={teamData?.parent.name ?? ""}
+                                defaultValue={teamData?.name ?? ""}
                                 rules={{
-                                    required: "Team name is required"
+                                    required: "Name is required"
+                                }}
+                            />
+
+
+                            <TextInput
+                                label="Team Abbreviation"
+                                name="teamAbbreviation"
+                                register={register}
+                                error={errors.teamAbbreviation}
+                                defaultValue={teamData?.abbreviation ?? ""}
+                                rules={{
+                                    required: "Name is required"
+                                }}
+                            />
+
+                            <TextInput
+                                label="Team Draft Position"
+                                name="teamDraftPosition"
+                                register={register}
+                                type="number"
+                                error={errors.teamDraftPosition}
+                                defaultValue={teamData?.draftPosition ?? ""}
+                                rules={{
+
                                 }}
                             />
 

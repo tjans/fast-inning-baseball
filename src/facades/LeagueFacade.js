@@ -590,13 +590,17 @@ class LeagueFacade {
   static async createPositionPlayer(position, seasonId, teamId) {
     let positionPlayer = await playerService.generatePositionPlayer(position);
 
-        let names = await nameService.generateName();
-        positionPlayer.firstName = names.firstName;
-        positionPlayer.lastName = names.lastName;
-        positionPlayer.position = position;
-        positionPlayer.teamId = teamId;
-        positionPlayer.seasonId = seasonId;
-        await playerService.savePlayer(positionPlayer);
+    let names = await nameService.generateName();
+    let player = {
+      firstName: names.firstName,
+      lastName: names.lastName,
+      position: position,
+      seasonId,
+      teamId,
+      ...positionPlayer
+    }
+
+    await playerService.savePlayer(player);
   }
 
   static async createTeam(index, leagueId, seasonId, gmId) {

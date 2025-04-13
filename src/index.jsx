@@ -41,7 +41,7 @@ const router = createBrowserRouter(
 
         <Route path="/leagues" element={<LeagueList />} />
         <Route path="/leagues/:leagueId/teams" element={<TeamList />} />
-        <Route path="/leagues/:leagueId/teams/:seasonTeamId/edit" element={<TeamEditor />} />
+        <Route path="/leagues/:leagueId/teams/:teamId/edit" element={<TeamEditor />} />
 
         <Route path="/settings" element={<Settings />} />
       </Route>

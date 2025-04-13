@@ -9,7 +9,7 @@ class TeamService {
     return await db.teams.put(team);
   }
 
-  static async getSeasonTeams(seasonId) {
+  static async getSeasonTeams(seasonId, sorter = null) {
     // teams has a dexie store and so does gm.  Get the teams that match the seasonId, along with a property for the gm
     let teams = await db.teams.where("seasonId")
       .equals(seasonId)
@@ -21,6 +21,12 @@ class TeamService {
         .equals(teams[i].gmId)
         .first();
       teams[i].gm = gm;
+    }
+
+    if(sorter) {
+      teams = teams.sort(sorter);
+    } else {
+      teams = teams.sort((a, b) => a.city.localeCompare(b.city));
     }
         
     return teams;
@@ -164,21 +170,14 @@ class TeamService {
 
   // Season Specific
   static async saveSeasonTeam (seasonTeam) {
-    seasonTeam = { ...seasonTeam, seasonTeamId: seasonTeam.seasonTeamId ?? uuidv4() };
-    return await db.seasonTeams.put(seasonTeam);
+    seasonTeam = { ...seasonTeam, teamId: seasonTeam.teamId ?? uuidv4() };
+    return await db.teams.put(seasonTeam);
   }
 
-  static async getSeasonTeam(seasonTeamId) {
-    let seasonTeam = await db.seasonTeams.where("seasonTeamId")
-      .equals(seasonTeamId)
+  static async getSeasonTeam(seasonId, teamId) {
+    let seasonTeam = await db.teams.where("[seasonId+teamId]")
+      .equals([seasonId, teamId])
       .first();
-
-    if (seasonTeam) {
-      let team = await db.teams.where("teamId")
-    .equals(seasonTeam.teamId)
-    .first();
-      seasonTeam.parent = team; // Attach the team details to the seasonTeam object
-    }
 
     return seasonTeam;
   }

@@ -1,6 +1,7 @@
 import { db } from "src/db";
 import { v4 as uuidv4 } from 'uuid';
 import util from "src/custom/utilities/util";
+import teamService from "src/services/TeamService";
 
 class PlayerService {
   static async savePlayer (player) {
@@ -21,19 +22,25 @@ class PlayerService {
 }
 
 // get the latest season players by draft date descending
-static async getRecentlyDraftedPlayers(seasonId) {
-  let players = await db.seasonPlayers
+static async getRecentlyDraftedPlayers(seasonId, limit = null) {
+  let players = await db.players
     .where("seasonId").equals(seasonId)
     .and((seasonPlayer) => {
-      return seasonPlayer.draftDate !== null;
+      return seasonPlayer.draftDate && !isNaN(new Date(seasonPlayer.draftDate).getTime());
     })
     .sortBy("draftDate");
 
-    players.map((player) => {
-      player.parent = db.players.where("playerId").equals(player.playerId).first();
-    });
+  if (limit) {
+    players = players.slice(-limit);
+  }
 
-  return players.reverse();
+  const teams = await teamService.getSeasonTeams(seasonId);
+  players = players.reverse().map(player => {
+    const team = teams.find(team => team.teamId === player.teamId);
+    return { player, team };
+  });
+
+  return players;
 }
 
 

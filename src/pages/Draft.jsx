@@ -57,7 +57,6 @@ export default function Draft() {
 
       seasonPlayer.teamId = selectedTeam.teamId;
       seasonPlayer.draftDate = new Date();
-      console.log(seasonPlayer)
       await playerService.saveSeasonPlayer(seasonPlayer);
       toast.success("Player successfully drafted!")
       setSelectedTeam(null);
@@ -74,19 +73,32 @@ export default function Draft() {
     if (league) {
       setLeague(league);
 
-      const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId);
+      const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId, (a, b) => a.draftPosition.localeCompare(b.city));
       setTeams(teams)
 
       const availablePlayers = await leagueFacade.getUndraftedPlayers(league.currentSeason.seasonId, selectedPosition);
       setAvailablePlayers(availablePlayers);
 
-      // const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId);
-      // console.log(recentDraftees);
-      //setRecentDraftees(recentDraftees);
+      const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId, 3);
+      setRecentDraftees(recentDraftees);
+      console.log(recentDraftees)
     }
   }
 
-
+  const undo = async (e) => {
+    e.preventDefault();
+    if (confirm("Are you sure you want to undo the last pick?")) {
+      if (recentDraftees.length > 0) {
+        const draftee = recentDraftees[0];
+        draftee.player.teamId = null;
+        draftee.player.draftDate = null;
+        await playerService.saveSeasonPlayer(draftee.player);
+        setRecentDraftees(recentDraftees.slice(1));
+        toast.success("Player successfully undrafted!")
+        load();
+      }
+    }
+  }
 
   return (
     <>
@@ -135,13 +147,20 @@ export default function Draft() {
               </div>
             }
 
-            {/* {recentDraftees?.length > 0 &&
-              recentDraftees.map((player) => {
-                return <div key={player.playerId} className="my-2 text-sm">
-                  <span className="font-bold">!!{player.firstName} {player.lastName}</span>
-                </div>
-              })
-            } */}
+            {recentDraftees?.length > 0 &&
+              <>
+                <div className="mt-3 font-bold">Last 3 Picks - <a href="#" onClick={undo}>Undo</a></div>
+                {recentDraftees?.length > 0 &&
+                  recentDraftees.map((item) => {
+                    return <div key={item.player.playerId} className="my-2 text-sm">
+                      <span className="">
+                        {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation}
+                      </span>
+                    </div>
+                  })
+                }
+              </>
+            }
 
           </div>
 
