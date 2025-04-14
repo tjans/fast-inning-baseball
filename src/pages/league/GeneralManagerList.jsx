@@ -15,7 +15,7 @@ export default function Template() {
   return (
     <>
       <ContentWrapper>
-        My Page Template
+        GM List
       </ContentWrapper>
     </>
   );

@@ -94,7 +94,7 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
       { min: 51, max: 61, grade: 'B+' },
       { min: 62, max: 64, grade: 'A' },
       { min: 65, max: 66, grade: 'A+' }
-    ]
+    ];
 
     const roll = util.rollTensOnes();
     return util.getChartResult(pitcherGrades, roll, 'grade');

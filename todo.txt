@@ -1,4 +1,5 @@
 Items to do:
+Fire/Hire/Edit GM
 2.16 Finder ranges for position players (do this after the team is completed)
 2.2 Free Agent creation
 Conference/Division
