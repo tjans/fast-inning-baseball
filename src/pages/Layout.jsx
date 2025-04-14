@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useParams } from "react-router-dom";
 import useAppStore from "src/stores/useAppStore";
 import { APP_NAME, HEADER_BG_CLASS, HEADER_TEXT_CLASS } from "src/AppConfig";
 
 // Icons
-import { GiNextButton, GiPreviousButton } from "react-icons/gi";
-import { IoBaseballOutline } from "react-icons/io5";
+import { PiBaseballCapDuotone } from "react-icons/pi";
+import { CiBaseball } from "react-icons/ci";
 import { FaHome } from "react-icons/fa";
 
 // Other
@@ -13,12 +13,33 @@ import ConfirmationModal from "src/components/ConfirmationModal";
 import { toast } from "react-toastify";
 import { ToastContainer, Slide } from "react-toastify";
 
+// services
+import LeagueService from 'src/services/LeagueService';
+
 import ScrollToTop from "src/components/ScrollToTop";
 import { set } from 'react-hook-form';
 
+
 export default function Root() {
   const [pageTitle, setPageTitle] = useState(null);
+  const [league, setLeague] = useState(null);
   const appStore = useAppStore()
+
+  const { leagueId } = useParams();
+
+  const load = async () => {
+    const league = leagueId ? await LeagueService.getLeague(leagueId) : null;
+
+    if (league) {
+      setLeague(league);
+    } else {
+      setLeague(null);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, [leagueId]);
 
   useEffect(() => {
     document.title = `${pageTitle ? `${pageTitle} | ` : ""}${APP_NAME}`;
@@ -43,6 +64,17 @@ export default function Root() {
             <FaHome className="text-2xl font-bold" />
             <span>Home</span>
           </Link>
+
+          {league &&
+            <>
+              <Link className="flex flex-col items-center text-sm" to={`/leagues/${league.leagueId}/teams`}>
+                <CiBaseball className="text-2xl font-bold" />
+                <span>{league.name}</span>
+              </Link>
+            </>
+
+
+          }
 
         </div>
       </div>

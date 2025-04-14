@@ -51,8 +51,6 @@ export default function Draft() {
     })
 
     setSelectedTeam({ ...team, positions });
-    console.log({ ...team, positions })
-
   }
 
   const handleSelectPosition = (selected) => async (e) => {
@@ -78,8 +76,8 @@ export default function Draft() {
     }
   }
 
-  const isOffense = () => ['1B', '2B', '3B', 'SS', 'DH', 'OF', 'C'].includes(selectedPosition);
-  const isPitcher = () => ['SP', 'RP', 'CL'].includes(selectedPosition);
+  const isOffense = () => ['1B', '2B', '3B', 'SS', 'DH', 'OF', 'C', 'Offense'].includes(selectedPosition);
+  const isPitcher = () => ['SP', 'RP', 'CL', 'Pitchers'].includes(selectedPosition);
 
   const load = async () => {
     const league = await leagueService.getLeague(leagueId);
@@ -87,7 +85,7 @@ export default function Draft() {
     if (league) {
       setLeague(league);
 
-      const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId, (a, b) => a.draftPosition.localeCompare(b.city));
+      const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId, (a, b) => a.draftPosition?.localeCompare(b?.draftPosition));
       setTeams(teams)
 
       const availablePlayers = await leagueFacade.getUndraftedPlayers(league.currentSeason.seasonId, selectedPosition);
@@ -122,8 +120,6 @@ export default function Draft() {
           <div className="text-2xl font-bold text-black">{league.name} - Year {league.currentSeason.year}</div>
         )}
 
-
-        {/* two divs one 4 columns, the other 8, side by side using tailwind */}
         <div className="flex flex-col w-full md:flex-row">
           <div className="w-full md:w-4/12">
 
@@ -133,7 +129,7 @@ export default function Draft() {
                   {teams.map(team => (
                     <li key={team.teamId}>
                       <a href="#" onClick={handleSelectTeam(team)} className={"underline" + (selectedTeam?.teamId === team.teamId ? " font-bold text-blue-500" : "")}>
-                        {team.city} {team.name}
+                        {team.abbreviation}
                       </a> - {team.gm.firstName} {team.gm.lastName}
                     </li>
                   ))}

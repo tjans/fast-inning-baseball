@@ -16,6 +16,7 @@ import Draft from "src/pages/Draft";
 import TeamList from "src/pages/league/TeamList"
 import TeamEditor from "src/pages/league/TeamEditor";
 import LeagueList from "src/pages/league/LeagueList";
+import GeneralManagerList from "src/pages/league/GeneralManagerList";
 
 // Plumbing
 import ErrorPage from "src/error-page";
@@ -28,11 +29,12 @@ import {
   Route,
 } from "react-router-dom";
 
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/" element={<Layout />} errorElement={<ErrorPage />}>
-        <Route index element={<Home />} />
+        <Route index element={<LeagueList />} />
         <Route path="/login" element={<Login />} />
 
         <Route path="/leagues/:leagueId/edit" element={<LeagueEditor />} />
@@ -42,6 +44,7 @@ const router = createBrowserRouter(
         <Route path="/leagues" element={<LeagueList />} />
         <Route path="/leagues/:leagueId/teams" element={<TeamList />} />
         <Route path="/leagues/:leagueId/teams/:teamId/edit" element={<TeamEditor />} />
+        <Route path="/leagues/:leagueId/general-managers" element={<GeneralManagerList />} />
 
         <Route path="/settings" element={<Settings />} />
       </Route>

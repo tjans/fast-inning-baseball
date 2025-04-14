@@ -49,7 +49,7 @@ export default function LeagueList() {
                             </div>
                             <div><Link to={`/leagues/${league.leagueId}/draft`} className="underline">Draft</Link></div>
                             <div><Link to={`/leagues/${league.leagueId}/teams`} className="underline">Teams</Link></div>
-                            <div><Link to={`/leagues/${league.leagueId}/gms`} className="underline">GMs</Link></div>
+                            <div><Link to={`/leagues/${league.leagueId}/general-managers`} className="underline">GMs</Link></div>
                         </section >
 
                     );
