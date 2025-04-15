@@ -40,17 +40,17 @@ class TeamService {
       teams[i].gm = gm;
     }
 
-    if(sorter) {
+    if (sorter) {
       teams = teams.sort(sorter);
     } else {
       teams = teams.sort((a, b) => a.city.localeCompare(b.city));
     }
-        
+
     return teams;
   }
 
   static generateTeam() {
-  
+
     let positionCounts = {
       "C": 1,
       "1B": 1,
@@ -93,7 +93,7 @@ class TeamService {
         let player = playerService.generatePitcher(position);
         pitchers.push(player);
 
-        if(position == "RP") {
+        if (position == "RP") {
           bullpenCount++;
           bullPenValue += player.value;
         }
@@ -109,12 +109,12 @@ class TeamService {
     }
 
     var bullpenAverage = Math.round(bullPenValue / bullpenCount);
-    
-    return {qualities, positionPlayers, pitchers, bullpenGrade: this.valueToGrade(bullpenAverage)};
+
+    return { qualities, positionPlayers, pitchers, bullpenGrade: this.valueToGrade(bullpenAverage) };
   }
 
   static valueToGrade(value) {
-    switch(value) {
+    switch (value) {
       case 7: return "A+"; break;
       case 6: return "A"; break;
       case 5: return "B+"; break;
@@ -125,6 +125,42 @@ class TeamService {
     }
 
     return "??";
+  }
+
+  static powerToValue(power) {
+    switch (power) {
+      case "STRONG": return 7; break;
+      case "STRONG•": return 6; break;
+      case "NO DESIGNATION": return 5; break;
+      case "WEAK•": return 4; break;
+      case "WEAK": return 3; break;
+    }
+    return 0;
+  }
+
+  static powerTendencyToValue(power) {
+    switch (power) {
+      case "TOUGH": return 7; break;
+      case "TOUGH•": return 6; break;
+      case "NO DESIGNATION": return 5; break;
+      case "SHAKY•": return 4; break;
+      case "SHAKY": return 3; break;
+    }
+    return 0;
+  }
+
+  // same thing as the function above, but instead, gradeToValue
+  static gradeToValue(grade) {
+    switch (grade) {
+      case "A+": return 7; break;
+      case "A": return 6; break;
+      case "B+": return 5; break;
+      case "B": return 4; break;
+      case "C": return 3; break;
+      case "D": return 2; break;
+      case "F": return 1; break;
+    }
+    return 0;
   }
 
   static getDefenseQuality(points) {
@@ -157,15 +193,15 @@ class TeamService {
 
   static getScoringQuality(hittingPoints, powerPoints) {
     var powerBoost = 0;
-    if(powerPoints == "STRONG") powerBoost = 6;
-    else if(powerPoints == "STRONG•") powerBoost = 3;
-    
-   var adjustedHittingPoints = hittingPoints + powerBoost;
-   var quality = "";
-    if(adjustedHittingPoints > 42) quality = "HIGH";
-    else if(adjustedHittingPoints >= 40 && adjustedHittingPoints <= 42) quality = "HIGH•";
-    else if(adjustedHittingPoints >= 30 && adjustedHittingPoints <= 39) quality = "neutral";
-    else if(adjustedHittingPoints >= 27 && adjustedHittingPoints <= 29) quality = "LOW•";
+    if (powerPoints == "STRONG") powerBoost = 6;
+    else if (powerPoints == "STRONG•") powerBoost = 3;
+
+    var adjustedHittingPoints = hittingPoints + powerBoost;
+    var quality = "";
+    if (adjustedHittingPoints > 42) quality = "HIGH";
+    else if (adjustedHittingPoints >= 40 && adjustedHittingPoints <= 42) quality = "HIGH•";
+    else if (adjustedHittingPoints >= 30 && adjustedHittingPoints <= 39) quality = "neutral";
+    else if (adjustedHittingPoints >= 27 && adjustedHittingPoints <= 29) quality = "LOW•";
     else quality = "LOW";
 
     return quality;
@@ -186,7 +222,7 @@ class TeamService {
   }
 
   // Season Specific
-  static async saveSeasonTeam (seasonTeam) {
+  static async saveSeasonTeam(seasonTeam) {
     seasonTeam = { ...seasonTeam, teamId: seasonTeam.teamId ?? uuidv4() };
     return await db.teams.put(seasonTeam);
   }

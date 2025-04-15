@@ -14,37 +14,45 @@ class LeagueFacade {
   // seasonPlayers record.
   static async getUndraftedPlayers(seasonId, position) {
     // Default to offense
-    var searchPositions = ['1B', '2B', '3B', 'SS', 'OF', 'DH', 'C'];
+    var offensePositions = ['1B', '2B', '3B', 'SS', 'OF', 'DH', 'C'];
+    var pitcherPositions = ['SP', 'RP', 'CL'];
+    var isPitcher = pitcherPositions.includes(position) || position == "Pitchers";
+    var isOffense = offensePositions.includes(position) || position == "Offense";
 
-    if (position) {
-      if (position.toLowerCase() == 'offense') {
-        searchPositions = ['1B', '2B', '3B', 'SS', 'OF', 'DH', 'C'];
-      } else if (position.toLowerCase() == 'pitchers') {
-        searchPositions = ['SP', 'RP', 'CL'];
-      } else if (position) {
-        searchPositions = [position];
+    let filterPositions = [];
+    if (position == "Pitchers") filterPositions = pitcherPositions;
+    else if (position == "Offense") filterPositions = offensePositions;
+    else filterPositions = [position];
+
+
+    let sorter = (a, b) => {
+      if (teamService.gradeToValue(a.grade) < teamService.gradeToValue(b.grade)) return 1;
+      if (teamService.gradeToValue(a.grade) > teamService.gradeToValue(b.grade)) return -1;
+
+      if (isOffense) {
+        if (teamService.gradeToValue(a.powerGrade) < teamService.gradeToValue(b.powerGrade)) return 1;
+        if (teamService.gradeToValue(a.powerGrade) > teamService.gradeToValue(b.powerGrade)) return -1;
+
+      } else if (isPitcher) {
+        if (teamService.powerTendencyToValue(a.powerTendency) < teamService.powerTendencyToValue(b.powerTendency)) return 1;
+        if (teamService.powerTendencyToValue(a.powerTendency) > teamService.powerTendencyToValue(b.powerTendency)) return -1;
+
       }
+
+      if (a.age > b.age) return 1;
+      if (a.age < b.age) return -1;
+      return 0;
     }
 
-    const seasonPlayers = await db.players
 
+    const seasonPlayers = await db.players
       .where("seasonId")
       .equals(seasonId)
-      .filter((sp) => searchPositions.includes(sp.position))
+      .filter((sp) => filterPositions.includes(sp.position))
       .filter((sp) => !sp.teamId)
       .toArray();
 
-    let offenseSorter = (a, b) => {
-      if (a.grade < b.grade) return -1;
-      if (a.grade > b.grade) return 1;
-      if (a.powerGrade < b.powerGrade) return -1;
-      if (a.powerGrade > b.powerGrade) return 1;
-      if (a.age > b.age) return -1;
-      if (a.age < b.age) return 1;
-      return 0;
-    };
-
-    seasonPlayers.sort(offenseSorter);
+    seasonPlayers.sort(sorter);
 
     return seasonPlayers;
   }

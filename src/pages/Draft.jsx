@@ -25,7 +25,7 @@ export default function Draft() {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [availablePlayers, setAvailablePlayers] = useState([]);
-  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState("Offense");
   const [recentDraftees, setRecentDraftees] = useState([]);
 
   useEffect(() => {
@@ -125,15 +125,15 @@ export default function Draft() {
 
             {teams && teams.length > 0 && (
               <div className="mt-4">
-                <ul>
-                  {teams.map(team => (
-                    <li key={team.teamId}>
+                <ol>
+                  {teams.map((team, idx) => (
+                    <li key={team.teamId} className="my-2"> {idx + 1}.{" "}
                       <a href="#" onClick={handleSelectTeam(team)} className={"underline" + (selectedTeam?.teamId === team.teamId ? " font-bold text-blue-500" : "")}>
-                        {team.abbreviation}
-                      </a> - {team.gm.firstName} {team.gm.lastName}
+                        {team.city}
+                      </a>
                     </li>
                   ))}
-                </ul>
+                </ol>
               </div>
             )}
 
@@ -220,7 +220,12 @@ export default function Draft() {
                           <th className="px-4 py-2">Type</th>
                           <th className="px-4 py-2">Clutch</th>
                           <th className="px-4 py-2">Defense</th>
+                          <th className="px-4 py-2">Power</th>
                         </>
+                      }
+
+                      {isPitcher() &&
+                        <th className="px-4 py-2">HR Tend</th>
                       }
 
                       {selectedTeam &&
@@ -240,7 +245,14 @@ export default function Draft() {
                           <>
                             <td className="px-4 py-2">{player.archetype}</td>
                             <td className="px-4 py-2">{player.clutchGrade}</td>
-                            <td className="px-4 py-2">{player.defenseGrade}</td></>
+                            <td className="px-4 py-2">{player.defenseGrade}</td>
+                            <td className="px-4 py-2">{player.powerGrade}</td>
+                          </>
+
+                        }
+
+                        {isPitcher() &&
+                          <td className="px-4 py-2">{player.powerTendency == "NO DESIGNATION" ? "" : player.powerTendency}</td>
                         }
 
                         {selectedTeam &&
