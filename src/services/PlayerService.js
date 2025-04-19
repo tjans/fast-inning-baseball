@@ -78,8 +78,8 @@ class PlayerService {
       .where("seasonId").equals(seasonId)
       .and((seasonPlayer) => {
         return seasonPlayer.draftDate && !isNaN(new Date(seasonPlayer.draftDate).getTime());
-      })
-      .sortBy("draftDate");
+      }).toArray();
+      
 
     if (limit) {
       players = players.slice(-limit);
@@ -91,6 +91,13 @@ class PlayerService {
       return { player, team };
     });
 
+    // sort these players by draft date descending
+    players.sort((a, b) => {
+      const dateA = new Date(a.player.draftDate);
+      const dateB = new Date(b.player.draftDate);
+      return dateB - dateA;
+    });
+    
     return players;
   }
 

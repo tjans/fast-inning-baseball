@@ -126,7 +126,7 @@ export default function Draft() {
       const availablePlayers = await leagueFacade.getUndraftedPlayers(league.currentSeason.seasonId, selectedPosition);
       setAvailablePlayers(availablePlayers);
 
-      const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId, 3);
+      const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId, 5);
       setRecentDraftees(recentDraftees);
     }
   }
@@ -180,7 +180,7 @@ export default function Draft() {
                   recentDraftees.map((item) => {
                     return <div key={item.player.playerId} className="my-2 text-sm">
                       <span className="">
-                        {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation}
+                        {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation} {new Date(item.player.draftDate).toLocaleString()}
                       </span>
                     </div>
                   })
@@ -246,7 +246,7 @@ export default function Draft() {
             <div>
               {availablePlayers && availablePlayers.length > 0 && (
 
-                <table className="text-sm text-left text-gray-500 rtl:text-right dark:text-gray-400 w-full">
+                <table className="w-full text-sm text-left text-gray-500 rtl:text-right dark:text-gray-400">
                   <thead className="text-xs text-gray-700 uppercase bg-gray-300">
 
                     <tr>

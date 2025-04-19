@@ -537,7 +537,7 @@ class LeagueFacade {
 
     // iterate over each team and create all the players for the team
     for (let i = 0; i < data.numberOfTeams; i++) {
-      let gmId = await this.createTeamGM(newLeagueId); a
+      let gmId = await this.createTeamGM(newLeagueId);
       let teamId = await this.createTeam(i, newLeagueId, seasonId, gmId);
 
       // create position players
