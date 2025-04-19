@@ -80,16 +80,19 @@ export default function Draft() {
   }
 
   const handleDraftPlayer = (playerId) => async (e) => {
-    setRollResult(null);
     e.preventDefault();
 
     if (selectedTeam) {
+      setRollResult(null);
+      const lastDraftee = recentDraftees[0];
+      let newDraftIndex = (lastDraftee?.player?.draftIndex + 1) || 1;
       const seasonId = league.currentSeason.seasonId;
 
       let seasonPlayer = await playerService.getSeasonPlayer(seasonId, playerId);
 
       seasonPlayer.teamId = selectedTeam.teamId;
       seasonPlayer.draftDate = new Date();
+      seasonPlayer.draftIndex = newDraftIndex;
       await playerService.saveSeasonPlayer(seasonPlayer);
       toast.success("Player successfully drafted!")
 
@@ -180,7 +183,7 @@ export default function Draft() {
                   recentDraftees.map((item) => {
                     return <div key={item.player.playerId} className="my-2 text-sm">
                       <span className="">
-                        {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation}
+                        <span className="font-bold">Pick {item.player.draftIndex}:</span> {item.player.position} - {item.player.firstName} {item.player.lastName}, {item.team.abbreviation}
                       </span>
                     </div>
                   })
