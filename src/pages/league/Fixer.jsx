@@ -11,13 +11,36 @@ import Button from 'src/components/Button';
 const Fixer = () => {
     const [pitchers, setPitchers] = useState([]);
     const [nonPitchers, setNonPitchers] = useState([]);
-    const [draftedPlayers, setDraftedPlayers] = useState([]);
+    const [players, setPlayers] = useState([]);
 
     const { leagueId } = useParams();
 
+    const addPlayer = async () => {
+        let playerId = "875fc9ab-7e83-4d5a-9e08-daaa6b23cb8f";
+        let league = await leagueService.getLeague(leagueId);
+        let player = await playerService.getSeasonPlayer(league.currentSeason.seasonId, playerId);
+        player.teamId = "42c711a0-b6da-40bd-b9d0-74dae253030a";
+        player.draftIndex = 66;
+        player.draftDate = new Date();
+        await playerService.savePlayer(player);
+        toast.success("Player added");
+    }
+
+    const dropPlayer = async () => {
+
+        // let playerId = "ffc1db2a-1b88-4823-b6b9-f8ee754a33aa";
+        // let league = await leagueService.getLeague(leagueId);
+        // let player = await playerService.getSeasonPlayer(league.currentSeason.seasonId, playerId);
+        // player.teamId = null;
+        // player.draftIndex = null;
+        // console.log(player)
+        // await playerService.savePlayer(player);
+        // toast.success("Player dropped");
+    }
+
     const fixDraftOrder = async () => {
         const league = await leagueService.getLeague(leagueId);
-        const recentDraftees = await playerService.getRecentlyDraftedPlayers(league.currentSeason.seasonId);
+        const recentDraftees = await playerService.getRecentlyPlayers(league.currentSeason.seasonId);
         let draftIndex = recentDraftees.length;
 
         for (const item of recentDraftees) {
@@ -29,7 +52,7 @@ const Fixer = () => {
             await playerService.savePlayer(item.player);
         }
 
-        setDraftedPlayers(recentDraftees);
+        setPlayers(recentDraftees);
 
         toast.success("All drafted players now have a draft index");
     }
@@ -55,11 +78,9 @@ const Fixer = () => {
 
     const load = async () => {
         const league = await leagueService.getLeague(leagueId);
-
+        const players = await leagueService.getAllPositionPlayers(league.currentSeason.seasonId);
         const pitchers = await leagueService.getAllPitchers(league.currentSeason.seasonId);
-        for (const player of pitchers) {
-            //await playerService.savePlayer(player)
-        };
+        setPlayers(pitchers);
     }
 
     useEffect(_ => {
@@ -71,25 +92,29 @@ const Fixer = () => {
             <div className="flex flex-wrap gap-4">
                 <Button text="Set Unfixed" onClick={setUnfixed} />
                 <Button text="Fix Draft Order" onClick={fixDraftOrder} />
+                <Button text="Add Player" onClick={addPlayer} />
+                <Button text="Drop Player" onClick={dropPlayer} />
             </div>
 
             <table>
                 <thead>
                     <tr>
                         <th className="text-left">Player</th>
+                        <th className="text-left">Player ID</th>
                         <th className="text-left">Draft Date</th>
                         <th className="text-left">Draft Index</th>
-                        <th className="text-left">Team</th>
+
                     </tr>
                 </thead>
                 <tbody>
-                    {draftedPlayers?.map((item) => {
+                    {players?.map((player) => {
                         return (
-                            <tr key={item.player.playerId}>
-                                <td>{item.player.firstName} {item.player.lastName}</td>
-                                <td>{new Date(item.player.draftDate).toLocaleDateString()} {new Date(item.player.draftDate).toLocaleTimeString()}</td>
-                                <td>{item.player.draftIndex ?? "??"}</td>
-                                <td>{item.team.abbreviation}</td>
+                            <tr key={player.playerId}>
+                                <td>{player.firstName} {player.lastName}</td>
+                                <td>{player.playerId}</td>
+                                <td>{new Date(player.draftDate).toLocaleDateString()} {new Date(player.draftDate).toLocaleTimeString()}</td>
+                                <td>{player.draftIndex ?? "??"}</td>
+
                             </tr>
                         )
                     })}
@@ -97,6 +122,7 @@ const Fixer = () => {
             </table>
 
         </ContentWrapper>
+
     )
 }
 

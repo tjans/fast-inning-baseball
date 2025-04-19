@@ -8,6 +8,10 @@ Apply ceilings to players when created, and make sure we use values now for stor
 
 Items for later:
 Fire/Hire/Edit GM
+Edit player
+Drop/Add player
+Disallow drafting players where positions are full
+
 
 Not needed, but notable if we want to add:
 2.1.3 Salaries
