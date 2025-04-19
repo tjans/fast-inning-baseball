@@ -31,6 +31,10 @@ export default function LeagueList() {
     return (
         <>
             <ContentWrapper>
+                <Link to="/export-data" className="underline">
+                    Export
+                </Link>
+
                 <div className="my-3">
                     <Link to="/leagues/0/edit" className="px-3 py-1 text-xs font-bold text-white uppercase bg-green-500 rounded-full hover:bg-green-700">
                         NEW

@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 // icons
 import { PiBaseballCapDuotone } from "react-icons/pi";
@@ -41,23 +42,26 @@ export default function TeamList() {
     return (
         <>
             <ContentWrapper>
-                <h2>{league?.name}</h2>
+                <div className="font-bold text-2xl">{league?.name}</div>
                 {teams && teams.length > 0 && teams.map((team) => {
 
                     return (
-                        <Card key={team.teamId} to={`/leagues/${leagueId}/teams/${team.teamId}/edit`} className="" >
-                            <div className="flex items-center gap-3">
-                                <PiBaseballCapDuotone className="mr-5 text-3xl text-defaultBlue" />
-                                <section className="text-left">
-                                    <div className="font-bold">
-                                        {team.city} {team.name}
-                                    </div>
-                                    <div className="text-sm">
-                                        GM: {team.gm?.firstName} {team.gm?.lastName}
-                                    </div>
-                                </section >
-                            </div>
-                        </Card>
+                        <>
+                            <Card key={team.teamId} to={`/leagues/${leagueId}/teams/${team.teamId}/edit`} className="" >
+                                <div className="flex items-center gap-3">
+                                    <PiBaseballCapDuotone className="mr-5 text-3xl text-defaultBlue" />
+                                    <section className="text-left">
+                                        <div className="font-bold">
+                                            {team.city} {team.name}
+                                        </div>
+                                        <div className="text-sm">
+                                            GM: {team.gm?.firstName} {team.gm?.lastName}
+                                        </div>
+                                    </section >
+                                </div>
+                            </Card>
+                            <div><Link to={`/leagues/${leagueId}/teams/${team.teamId}/roster`}>Roster</Link></div>
+                        </>
                     );
                 })}
 

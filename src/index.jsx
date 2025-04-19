@@ -15,8 +15,11 @@ import LeagueViewer from "src/pages/LeagueViewer";
 import Draft from "src/pages/Draft";
 import TeamList from "src/pages/league/TeamList"
 import TeamEditor from "src/pages/league/TeamEditor";
+import TeamRoster from "src/pages/league/TeamRoster";
 import LeagueList from "src/pages/league/LeagueList";
 import GeneralManagerList from "src/pages/league/GeneralManagerList";
+import ApplyCeilings from "src/pages/league/ApplyCeilings";
+import Export from "src/pages/Export";
 
 // Plumbing
 import ErrorPage from "src/error-page";
@@ -36,15 +39,19 @@ const router = createBrowserRouter(
       <Route path="/" element={<Layout />} errorElement={<ErrorPage />}>
         <Route index element={<LeagueList />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/export-data" element={<Export />} />
 
         <Route path="/leagues/:leagueId/edit" element={<LeagueEditor />} />
         <Route path="/leagues/:leagueId" element={<LeagueViewer />} />
         <Route path="/leagues/:leagueId/draft" element={<Draft />} />
-
         <Route path="/leagues" element={<LeagueList />} />
+
         <Route path="/leagues/:leagueId/teams" element={<TeamList />} />
         <Route path="/leagues/:leagueId/teams/:teamId/edit" element={<TeamEditor />} />
+        <Route path="/leagues/:leagueId/teams/:teamId/roster" element={<TeamRoster />} />
+
         <Route path="/leagues/:leagueId/general-managers" element={<GeneralManagerList />} />
+        <Route path="/leagues/:leagueId/apply-ceilings" element={<ApplyCeilings />} />
 
         <Route path="/settings" element={<Settings />} />
       </Route>

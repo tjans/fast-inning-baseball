@@ -1,12 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import useGameData from 'src/hooks/useGameData';
-
 
 export function ActionButton(props) {
   const navigate = useNavigate();
-
-  const { getTeamStyle } = useGameData();
 
   const bgClass = props.bgclass || "bg-defaultBlue border-blueDarken hover:bg-blueDarken";
   let classes = `min-w-24 py-2 px-5 font-bold border rounded-lg ${bgClass} text-white border-b-4 inline-block`;
@@ -27,7 +23,7 @@ export function ActionButton(props) {
 
   return (
     <>
-      <button style={getTeamStyle(props.team)} name={props.name} onClick={handleClick} className={classes}>
+      <button name={props.name} onClick={handleClick} className={classes}>
         {props.text}
       </button>
     </>
@@ -45,7 +41,7 @@ export function ActionLink(props) {
 
   return (
     <>
-      <Link to={props.path} style={getTeamStyle(props.team)} onClick={props.onClick} className={classes}>
+      <Link to={props.path} onClick={props.onClick} className={classes}>
         {props.text}
       </Link>
     </>

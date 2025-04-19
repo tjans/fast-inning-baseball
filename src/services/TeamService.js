@@ -23,6 +23,26 @@ class TeamService {
       .equals([seasonId, teamId])
       .and((player) => ['1B', '2B', '3B', 'SS', 'DH', 'OF', 'C'].includes(player.position))
       .toArray();
+
+    players = players.sort((a, b) => {
+      const order = ['C', '1B', '2B', '3B', 'SS', 'OF', 'DH'];
+      return order.indexOf(a.position) - order.indexOf(b.position);
+    });
+
+    return players;
+  }
+
+  static async getSeasonPitchers(seasonId, teamId) {
+    let players = await db.players.where("[seasonId+teamId]")
+      .equals([seasonId, teamId])
+      .and((player) => ['SP', 'RP', 'CL'].includes(player.position))
+      .toArray();
+
+    players = players.sort((a, b) => {
+      const order = ['SP', 'RP', 'CL'];
+      return order.indexOf(a.position) - order.indexOf(b.position);
+    });
+
     return players;
   }
 
@@ -149,7 +169,16 @@ class TeamService {
     return 0;
   }
 
-  // same thing as the function above, but instead, gradeToValue
+
+  // Move this and other player functions to the playerService
+  // It's here because these are mainly used for determining 
+  // team qualities.  However, they are specific to players.
+  static incrementGrade(currentGrade, addValue = 1) {
+    let currentValue = this.gradeToValue(currentGrade);
+    let newValue = Math.min(currentValue + addValue, 7);
+    return this.valueToGrade(newValue);
+  }
+
   static gradeToValue(grade) {
     switch (grade) {
       case "A+": return 7; break;

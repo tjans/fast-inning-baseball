@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 // store
 import useAppStore from "src/stores/useAppStore";
@@ -13,9 +13,11 @@ import leagueService from "src/services/LeagueService";
 import leagueFacade from "src/facades/LeagueFacade";
 import playerService from "src/services/PlayerService";
 import teamService from "src/services/TeamService";
+import utility from "src/custom/utilities/util";
 
 // misc
 import { toast } from "react-toastify";
+import Button from "src/components/Button";
 
 export default function Draft() {
   usePageTitle("League Draft");
@@ -27,6 +29,8 @@ export default function Draft() {
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState("Offense");
   const [recentDraftees, setRecentDraftees] = useState([]);
+  const [rollResult, setRollResult] = useState(null);
+  const [rollLoader, setRollLoader] = useState(false);
 
   useEffect(() => {
     load();
@@ -36,6 +40,24 @@ export default function Draft() {
     load();
   }, [selectedPosition])
 
+  const pitcherFocused = () => {
+    let roll = utility.rollD6();
+    if (roll <= 4) setRollResult("Pitcher");
+    else setRollResult("Position");
+  }
+
+  const balanced = () => {
+    let roll = utility.rollD6();
+    if (roll <= 3) setRollResult("Pitcher");
+    else setRollResult("Position");
+  }
+
+  const offenseFocused = () => {
+    let roll = utility.rollD6();
+    if (roll <= 4) setRollResult("Position");
+    else setRollResult("Pitcher");
+  }
+
   const handleSelectTeam = (team) => async (e) => {
     e.preventDefault();
 
@@ -44,9 +66,7 @@ export default function Draft() {
     let positions = {};
     players.map(player => {
       let position = player.position;
-      if (['SP', 'RP', 'CL'].includes(player.position)) {
-        position = 'P';
-      }
+
       positions[position] = (positions[position] || 0) + 1;
     })
 
@@ -60,6 +80,7 @@ export default function Draft() {
   }
 
   const handleDraftPlayer = (playerId) => async (e) => {
+    setRollResult(null);
     e.preventDefault();
 
     if (selectedTeam) {
@@ -71,6 +92,7 @@ export default function Draft() {
       seasonPlayer.draftDate = new Date();
       await playerService.saveSeasonPlayer(seasonPlayer);
       toast.success("Player successfully drafted!")
+
       setSelectedTeam(null);
       load();
     }
@@ -85,7 +107,20 @@ export default function Draft() {
     if (league) {
       setLeague(league);
 
-      const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId, (a, b) => a.draftPosition?.localeCompare(b?.draftPosition));
+      // Used to sort the teams by draft position
+      const sorter = (a, b) => {
+        let draftA = parseInt(a.draftPosition);
+        let draftB = parseInt(b.draftPosition);
+        if (draftA < draftB) {
+          return -1;
+        } else if (draftA > draftB) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+
+      const teams = await teamService.getSeasonTeams(league.currentSeason.seasonId, sorter);
       setTeams(teams)
 
       const availablePlayers = await leagueFacade.getUndraftedPlayers(league.currentSeason.seasonId, selectedPosition);
@@ -167,7 +202,7 @@ export default function Draft() {
 
                 {selectedTeam.positions && Object.keys(selectedTeam.positions).length > 0 &&
                   <div className="mt-3">
-                    <strong>Draft History:</strong>
+                    <strong><Link to={`/leagues/${leagueId}/teams/${selectedTeam.teamId}/roster`} target="_blank" className="underline">Draft History:</Link></strong>
                     {/* selectedTeam.positions is an object with key of position -> value, let's iterate over this printing out position/value */}
                     {Object.keys(selectedTeam.positions).map((position) => {
                       return (
@@ -185,6 +220,11 @@ export default function Draft() {
                     return <div key={index} className="my-2 text-sm" dangerouslySetInnerHTML={{ __html: item }}></div>
                   })}
                 </div>
+
+                <div><Button text="1-4 Pitcher, 5-6 Position" className="my-2" onClick={pitcherFocused} /></div>
+                <div><Button text="1-3 Pitcher, 4-6 Position" className="my-2" onClick={balanced} /></div>
+                <div><Button text="1-4 Position, 4-6 Pitcher" className="my-2" onClick={offenseFocused} /></div>
+                <div>{rollResult}</div>
               </div>
             }
 
@@ -206,18 +246,19 @@ export default function Draft() {
             <div>
               {availablePlayers && availablePlayers.length > 0 && (
 
-                <table className="text-sm text-left text-gray-500 rtl:text-right dark:text-gray-400">
+                <table className="text-sm text-left text-gray-500 rtl:text-right dark:text-gray-400 w-full">
                   <thead className="text-xs text-gray-700 uppercase bg-gray-300">
 
                     <tr>
                       <th className="px-4 py-2 text-start">Player</th>
                       <th className="px-4 py-2">Position</th>
                       <th className="px-4 py-2">Age</th>
-                      <th className="px-4 py-2">Grade</th>
+
 
                       {isOffense() &&
                         <>
                           <th className="px-4 py-2">Type</th>
+                          <th className="px-4 py-2">Grade</th>
                           <th className="px-4 py-2">Clutch</th>
                           <th className="px-4 py-2">Defense</th>
                           <th className="px-4 py-2">Power</th>
@@ -225,7 +266,10 @@ export default function Draft() {
                       }
 
                       {isPitcher() &&
-                        <th className="px-4 py-2">HR Tend</th>
+                        <>
+                          <th className="px-4 py-2">Grade</th>
+                          <th className="px-4 py-2">HR Tend</th>
+                        </>
                       }
 
                       {selectedTeam &&
@@ -239,20 +283,23 @@ export default function Draft() {
                         <td className="px-4 py-2 text-start">{player.firstName} {player.lastName}</td>
                         <td className="px-4 py-2">{player.position}</td>
                         <td className="px-4 py-2">{player.age}</td>
-                        <td className="px-4 py-2">{player.grade}</td>
 
                         {isOffense() &&
                           <>
                             <td className="px-4 py-2">{player.archetype}</td>
-                            <td className="px-4 py-2">{player.clutchGrade}</td>
-                            <td className="px-4 py-2">{player.defenseGrade}</td>
-                            <td className="px-4 py-2">{player.powerGrade}</td>
+                            <td className="px-4 py-2">{teamService.valueToGrade(player.grade)}/{teamService.valueToGrade(player.gradeCeiling)}</td>
+                            <td className="px-4 py-2">{teamService.valueToGrade(player.clutchGrade)}/{teamService.valueToGrade(player.clutchCeiling)}</td>
+                            <td className="px-4 py-2">{teamService.valueToGrade(player.defenseGrade)}/{teamService.valueToGrade(player.defenseCeiling)}</td>
+                            <td className="px-4 py-2">{teamService.valueToGrade(player.powerGrade)}/{teamService.valueToGrade(player.powerCeiling)}</td>
                           </>
 
                         }
 
                         {isPitcher() &&
-                          <td className="px-4 py-2">{player.powerTendency == "NO DESIGNATION" ? "" : player.powerTendency}</td>
+                          <>
+                            <td className="px-4 py-2">{teamService.valueToGrade(player.grade)}/{teamService.valueToGrade(player.gradeCeiling)}</td>
+                            <td className={"px-4 py-2 "}>{playerService.powerTendencyToGrade(player.powerTendency)}</td>
+                          </>
                         }
 
                         {selectedTeam &&

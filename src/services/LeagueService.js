@@ -24,16 +24,21 @@ class LeagueService {
     return league;
   }
 
-  // private
-  // positionSorter: function (a, b) {
-  //   var ordering = {}, // map for efficient lookup of sortIndex
-  //     sortOrder = ["C", "1B", "2B", "3B", "SS", "LF", "RF", "CF", "MI", "CI", "OF", "DH", "P"];
-  //   for (var i = 0; i < sortOrder.length; i++) ordering[sortOrder[i]] = i;
-  //   return (
-  //     ordering[a.position] - ordering[b.position] ||
-  //     a.lastName.localeCompare(b.lastName)
-  //   );
-  // },
+  static async getAllPositionPlayers(seasonId) {
+    let players = await db.players.where("seasonId")
+      .equals(seasonId)
+      .filter(player => ['1B', '2B', '3B', 'SS', 'DH', 'OF', 'C'].includes(player.position))
+      .toArray();
+    return players;
+  }
+
+  static async getAllPitchers(seasonId) {
+    let pitchers = await db.players.where("seasonId")
+      .equals(seasonId)
+      .filter(player => ["SP", "RP", "CL"].includes(player.position))
+      .toArray();
+    return pitchers;
+  }
 }
 
 export default LeagueService;

@@ -4,44 +4,95 @@ import util from "src/custom/utilities/util";
 import teamService from "src/services/TeamService";
 
 class PlayerService {
-  static async savePlayer (player) {
+  static async savePlayer(player) {
     player = { ...player, playerId: player.playerId ?? uuidv4() };
     return await db.players.put(player);
   }
 
-  static async getSeasonPlayer(seasonId,playerId) {
+  static async getSeasonPlayer(seasonId, playerId) {
     return await db.players
       .where('[seasonId+playerId]')
       .equals([seasonId, playerId])
       .first();
   }
 
-  static async saveSeasonPlayer (seasonPlayer) {
+  static async saveSeasonPlayer(seasonPlayer) {
     seasonPlayer = { ...seasonPlayer, playerId: seasonPlayer.playerId ?? uuidv4() };
     return await db.players.put(seasonPlayer);
-}
-
-// get the latest season players by draft date descending
-static async getRecentlyDraftedPlayers(seasonId, limit = null) {
-  let players = await db.players
-    .where("seasonId").equals(seasonId)
-    .and((seasonPlayer) => {
-      return seasonPlayer.draftDate && !isNaN(new Date(seasonPlayer.draftDate).getTime());
-    })
-    .sortBy("draftDate");
-
-  if (limit) {
-    players = players.slice(-limit);
   }
 
-  const teams = await teamService.getSeasonTeams(seasonId);
-  players = players.reverse().map(player => {
-    const team = teams.find(team => team.teamId === player.teamId);
-    return { player, team };
-  });
+  static getArchetypeCeilings(archetype) {
+    if (archetype == "5E") {
+      return {
+        gradeCeiling: 7,
+        clutchCeiling: 6,
+        powerCeiling: 6,
+        defenseCeiling: 6,
+      }
 
-  return players;
-}
+    } else if (archetype == "5T") {
+      return {
+        gradeCeiling: 6,
+        clutchCeiling: 6,
+        powerCeiling: 5,
+        defenseCeiling: 5,
+      }
+    } else if (archetype == "HK") {
+      return {
+        gradeCeiling: 5,
+        clutchCeiling: 4,
+        powerCeiling: 7,
+        defenseCeiling: 3,
+      }
+    } else if (archetype == "HE") {
+      return {
+        gradeCeiling: 7,
+        clutchCeiling: 6,
+        powerCeiling: 4,
+        defenseCeiling: 4,
+      }
+    } else if (archetype == "DS") {
+      return {
+        gradeCeiling: 4,
+        clutchCeiling: 6,
+        powerCeiling: 3,
+        defenseCeiling: 7,
+      }
+    } else if (archetype == "JM") {
+      return {
+        gradeCeiling: 4,
+        clutchCeiling: 6,
+        powerCeiling: 4,
+        defenseCeiling: 4,
+      }
+    }
+
+
+    return {};
+  }
+
+
+  // get the latest season players by draft date descending
+  static async getRecentlyDraftedPlayers(seasonId, limit = null) {
+    let players = await db.players
+      .where("seasonId").equals(seasonId)
+      .and((seasonPlayer) => {
+        return seasonPlayer.draftDate && !isNaN(new Date(seasonPlayer.draftDate).getTime());
+      })
+      .sortBy("draftDate");
+
+    if (limit) {
+      players = players.slice(-limit);
+    }
+
+    const teams = await teamService.getSeasonTeams(seasonId);
+    players = players.reverse().map(player => {
+      const team = teams.find(team => team.teamId === player.teamId);
+      return { player, team };
+    });
+
+    return players;
+  }
 
 
 
@@ -64,7 +115,7 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
       { min: 56, max: 62, age: 32 },
       { min: 63, max: 64, age: 33 },
       { min: 65, max: 65, age: 34 },
-      { min: 66, max: 66, age: 35 } 
+      { min: 66, max: 66, age: 35 }
     ]
 
     return util.getChartResult(ages, roll, 'age');
@@ -100,11 +151,31 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
     return util.getChartResult(pitcherGrades, roll, 'grade');
   }
 
+  static powerTendencyToValue(tendency) {
+    switch (tendency) {
+      case 'SHAKY': return 1;
+      case 'SHAKY•': return 2;
+      case 'neutral': return 3;
+      case 'TOUGH•': return 4;
+      case 'TOUGH': return 5;
+    }
+  }
+
+  static powerTendencyToGrade(tendency) {
+    switch (tendency) {
+      case 1: return 'SHAKY';
+      case 2: return 'SHAKY•';
+      case 3: return 'neutral';
+      case 4: return 'TOUGH•';
+      case 5: return 'TOUGH';
+    }
+  }
+
   static generatePowerTendency() {
     let powerTendencies = [
       { min: 11, max: 13, tendency: 'SHAKY' },
       { min: 14, max: 23, tendency: 'SHAKY•' },
-      { min: 24, max: 55, tendency: 'NO DESIGNATION' },
+      { min: 24, max: 55, tendency: 'neutral' },
       { min: 56, max: 63, tendency: 'TOUGH•' },
       { min: 64, max: 66, tendency: 'TOUGH' }
     ]
@@ -155,7 +226,7 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
   static generatePositionPlayer(position) {
     // hitting, power, defense, clutch, all based off of archetype
     let arch = this.generatePositionPlayerArchetype(position);
-    
+
     let powerGrade = this.generatePowerGrade(arch);
     let powerValue = this.getGradeValue(powerGrade);
     let hittingGrade = this.generateHittingGrade(arch);
@@ -175,7 +246,7 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
       clutchGrade,
 
       hittingValue,
-      powerValue,      
+      powerValue,
       defenseValue,
       clutchValue
     }
@@ -231,7 +302,7 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
           { min: 35, max: 44, grade: 'B' },
           { min: 45, max: 66, grade: 'B+' }
         ];
-      break;
+        break;
     }
 
     const roll = util.rollTensOnes();
@@ -285,7 +356,7 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
           { min: 32, max: 54, grade: 'A' },
           { min: 55, max: 66, grade: 'A+' }
         ];
-      break;
+        break;
     }
 
     const roll = util.rollTensOnes();
@@ -340,10 +411,10 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
           { min: 23, max: 34, grade: 'D' },
           { min: 35, max: 66, grade: 'C' }
         ];
-      break;
+        break;
     }
 
-    
+
 
     const roll = util.rollTensOnes();
     return util.getChartResult(chart, roll, 'grade');
@@ -355,11 +426,11 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
     switch (archetype) {
       case '5E':
         chart = [
-         { min: 11, max: 16, grade: 'D' },
-         { min: 21, max: 26, grade: 'C' },
-         { min: 31, max: 46, grade: 'B' },
-         { min: 51, max: 56, grade: 'B+' },
-         { min: 61, max: 66, grade: 'A' } 
+          { min: 11, max: 16, grade: 'D' },
+          { min: 21, max: 26, grade: 'C' },
+          { min: 31, max: 46, grade: 'B' },
+          { min: 51, max: 56, grade: 'B+' },
+          { min: 61, max: 66, grade: 'A' }
         ];
         break;
       case '5T':
@@ -406,10 +477,10 @@ static async getRecentlyDraftedPlayers(seasonId, limit = null) {
           { min: 31, max: 46, grade: 'C' },
           { min: 51, max: 66, grade: 'B' }
         ];
-      break;
+        break;
     }
 
-    
+
 
     const roll = util.rollTensOnes();
     return util.getChartResult(chart, roll, 'grade');
