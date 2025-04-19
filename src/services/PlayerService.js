@@ -78,8 +78,8 @@ class PlayerService {
       .where("seasonId").equals(seasonId)
       .and((seasonPlayer) => {
         return seasonPlayer.draftDate && !isNaN(new Date(seasonPlayer.draftDate).getTime());
-      }).toArray();
-      
+      })
+      .sortBy("draftIndex");
 
     if (limit) {
       players = players.slice(-limit);

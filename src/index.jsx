@@ -18,7 +18,7 @@ import TeamEditor from "src/pages/league/TeamEditor";
 import TeamRoster from "src/pages/league/TeamRoster";
 import LeagueList from "src/pages/league/LeagueList";
 import GeneralManagerList from "src/pages/league/GeneralManagerList";
-import ApplyCeilings from "src/pages/league/ApplyCeilings";
+import Fixer from "src/pages/league/Fixer";
 import Export from "src/pages/Export";
 
 // Plumbing
@@ -51,7 +51,7 @@ const router = createBrowserRouter(
         <Route path="/leagues/:leagueId/teams/:teamId/roster" element={<TeamRoster />} />
 
         <Route path="/leagues/:leagueId/general-managers" element={<GeneralManagerList />} />
-        <Route path="/leagues/:leagueId/apply-ceilings" element={<ApplyCeilings />} />
+        <Route path="/leagues/:leagueId/fixer" element={<Fixer />} />
 
         <Route path="/settings" element={<Settings />} />
       </Route>
